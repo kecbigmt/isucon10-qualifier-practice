@@ -14,7 +14,7 @@ import (
 	"strconv"
 	"strings"
 
-	"./useragent"
+	"github.com/isucon/isucon10-qualify/isuumo/useragent"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
