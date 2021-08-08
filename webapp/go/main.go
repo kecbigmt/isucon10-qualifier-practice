@@ -272,7 +272,7 @@ func main() {
 	e.Use(middleware.Recover())
 
 	// botからのリクエストを弾く
-	e.Use(RejectBotMiddleware)
+	// e.Use(RejectBotMiddleware)
 
 	// Initialize
 	e.POST("/initialize", initialize)
