@@ -14,6 +14,8 @@ import (
 	"strconv"
 	"strings"
 
+	"./useragent"
+
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo"
@@ -252,6 +254,22 @@ func main() {
 	// Middleware
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
+
+	// botからのリクエストを弾く
+	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			if err := next(c); err != nil {
+				c.Error(err)
+			}
+
+			ua := c.Request().Header.Get("User-Agent")
+			if useragent.IsBot(ua) {
+				return echo.ErrServiceUnavailable
+			}
+
+			return next(c)
+		}
+	})
 
 	// Initialize
 	e.POST("/initialize", initialize)
