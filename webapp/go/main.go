@@ -241,6 +241,22 @@ func init() {
 	json.Unmarshal(jsonText, &estateSearchCondition)
 }
 
+func RejectBotMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		if err := next(c); err != nil {
+			c.Error(err)
+		}
+
+		ua := c.Request().Header.Get("User-Agent")
+		if useragent.IsBot(ua) {
+			log.Printf("bot detected: %s\n", ua)
+			return echo.ErrServiceUnavailable
+		}
+
+		return next(c)
+	}
+}
+
 func main() {
 	go func() {
 		fmt.Println(http.ListenAndServe("localhost:6060", nil))
@@ -256,20 +272,7 @@ func main() {
 	e.Use(middleware.Recover())
 
 	// botからのリクエストを弾く
-	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
-			if err := next(c); err != nil {
-				c.Error(err)
-			}
-
-			ua := c.Request().Header.Get("User-Agent")
-			if useragent.IsBot(ua) {
-				return echo.ErrServiceUnavailable
-			}
-
-			return next(c)
-		}
-	})
+	e.Use(RejectBotMiddleware)
 
 	// Initialize
 	e.POST("/initialize", initialize)
